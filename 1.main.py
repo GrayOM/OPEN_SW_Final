@@ -65,10 +65,71 @@ def brute_force_time_estimate(length, num_characters):
 def check_password_leak(password, leaked_passwords):
     return password in leaked_passwords
 
-# Streamlit 앱 시작
-st.title("비밀번호 생성기")
 
-st.header("비밀번호 생성 옵션")
+######################################
+
+# Streamlit 앱 시작
+# 스타일 정의
+st.markdown("""
+    <style>
+    .image-container {              /* title 옆 물감 이미지 */
+        margin-top: -100px;         /* margin 간격 조정 */
+    }
+    .title {                        /* title */
+        text-align: center;         /* 가운데 정렬 */
+        font-size: 50px;            /* 글자 크기 */
+        font-weight: bold;          /* 굵게 */
+        color: white;                /* 색상 */
+        margin-left: -350px;        /* 타이틀과 이미지의 간격 조정 */
+        margin-top: 80px;           /* 타이틀과 이미지의 간격 조정 */
+        text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(0, 0, 0, 0.5), 
+            4px -4px 8px rgba(0, 0, 0, 0.5), -4px 4px 8px rgba(0, 0, 0, 0.5);
+    }
+    .header-box1 {                  /* 첫번째 header */
+        text-align: center;
+        background: #f0f0f0;
+        border: 2px solid #4CAF50;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 20px auto;
+        width: 70%;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-top : -50px;
+    }
+    .header-box2 {                  /* 두번째 header */
+        text-align: center;
+        background: #f0f0f0;
+        border: 2px solid #4CAF50;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 20px auto;
+        width: 70%;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# 이미지와 타이틀을 양옆으로 배치
+col1, col2= st.columns(2)  # 가운데 컬럼을 넓게 설정
+
+# 왼쪽 컬럼: 이미지
+with col1:
+    st.markdown('<div class="image-container">', unsafe_allow_html=True)
+    st.image("image/colorsImage.jpeg", width = 200)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+
+# 가운데 컬럼: 타이틀
+with col2:
+    st.markdown('<div class="title">비밀번호 생성기 및 검사기</div>', unsafe_allow_html=True)
+
+
+# 헤더 디자인
+st.markdown('<div class="header-box1">안전한 비밀번호를 생성해드립니다.</div>', unsafe_allow_html=True)
 
 # 비밀번호 길이 선택
 password_length = st.slider("비밀번호 길이 선택:", min_value=8, max_value=32, value=12)
@@ -76,17 +137,23 @@ password_length = st.slider("비밀번호 길이 선택:", min_value=8, max_valu
 # 비밀번호 개수 선택
 num_passwords = st.slider("생성할 비밀번호 개수:", min_value=1, max_value=5, value=1)
 
-# 문자 옵션 선택
-include_uppercase = st.checkbox("대문자 포함")
-include_lowercase = st.checkbox("소문자 포함")
-include_digits = st.checkbox("숫자 포함")
-include_specials = st.checkbox("특수문자 포함")
+# 문자 옵션 선택을 가로로 나열 (2행으로 변경)
+col1, col2, col3 = st.columns(3)
+with col1:
+    include_uppercase = st.checkbox("대문자 포함")
+with col2:
+    include_lowercase = st.checkbox("소문자 포함")
+with col3:
+    include_digits = st.checkbox("숫자 포함")
 
-# 모호한 문자 제외 옵션
-exclude_ambiguous = st.checkbox("모호한 문자 제외 (O, 0, I, 1, |)")
-
-# Base64 인코딩 옵션
-use_base64 = st.checkbox("비밀번호를 Base64로 인코딩")
+# 다음 행에 가로로 나열
+col4, col5, col6 = st.columns(3)
+with col4:
+    include_specials = st.checkbox("특수문자 포함")
+with col5:
+    exclude_ambiguous = st.checkbox("모호한 문자 제외 (O, 0, I, 1, |)")
+with col6:
+    use_base64 = st.checkbox("비밀번호를 Base64로 인코딩")
 
 # 비밀번호 생성 버튼
 if st.button("비밀번호 생성"):
@@ -125,7 +192,7 @@ if st.button("비밀번호 생성"):
         st.info(f"비밀번호가 깨질 때까지 예상 시간: {est_time}")
 
 # 사용자 비밀번호 입력 및 검사
-st.header("자신의 비밀번호 검사")
+st.markdown('<div class="header-box2">자신의 비밀번호 검사</div>', unsafe_allow_html=True)
 
 user_password = st.text_input("비밀번호를 입력하세요:", type="password")
 
@@ -162,3 +229,4 @@ if st.button("비밀번호 검사"):
             st.error("leaked_passwords.csv 파일을 찾을 수 없습니다.")
     else:
         st.error("비밀번호를 입력해주세요.")
+
