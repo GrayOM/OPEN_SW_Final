@@ -5,7 +5,6 @@ import base64
 import pandas as pd
 from dotenv import load_dotenv
 import os
-import kagglehub
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
@@ -77,6 +76,7 @@ st.markdown("""
     }
     .title {                        /* title */
         text-align: center;         /* 가운데 정렬 */
+        font-family: 'Times New Roman', sans-serif;  /* Arial 폰트 */
         font-size: 50px;            /* 글자 크기 */
         font-weight: bold;          /* 굵게 */
         color: white;                /* 색상 */
@@ -110,32 +110,40 @@ st.markdown("""
         font-weight: bold;
         color: #333;
     }
+    .password-box {                 /* 비밀번호를 출력할 상자 */
+        width: 400px;
+        height: 40px;
+        background: #F2F2F2;
+        text-align: center;
+        font-size: 18px;
+        border-radius: 10px;
+        margin-top: 5px;
+        padding: 5px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # 이미지와 타이틀을 양옆으로 배치
-col1, col2= st.columns(2)  # 가운데 컬럼을 넓게 설정
+col1, col2 = st.columns(2)  # 가운데 컬럼을 넓게 설정
 
 # 왼쪽 컬럼: 이미지
 with col1:
     st.markdown('<div class="image-container">', unsafe_allow_html=True)
-    st.image("image/colorsImage.jpeg", width = 200)
+    st.image("image/colorsImage.jpeg", width=200)
     st.markdown('</div>', unsafe_allow_html=True)
-    
 
 # 가운데 컬럼: 타이틀
 with col2:
     st.markdown('<div class="title">비밀번호 생성기 및 검사기</div>', unsafe_allow_html=True)
 
-
 # 헤더 디자인
 st.markdown('<div class="header-box1">안전한 비밀번호를 생성해드립니다.</div>', unsafe_allow_html=True)
 
 # 비밀번호 길이 선택
-password_length = st.slider("비밀번호 길이 선택:", min_value=8, max_value=32, value=12)
+password_length = st.slider("비밀번호 길이를 선택하세요", min_value=8, max_value=32, value=12)
 
 # 비밀번호 개수 선택
-num_passwords = st.slider("생성할 비밀번호 개수:", min_value=1, max_value=5, value=1)
+num_passwords = st.slider("생성할 비밀번호 개수를 선택하세요", min_value=1, max_value=5, value=1)
 
 # 문자 옵션 선택을 가로로 나열 (2행으로 변경)
 col1, col2, col3 = st.columns(3)
@@ -146,7 +154,7 @@ with col2:
 with col3:
     include_digits = st.checkbox("숫자 포함")
 
-# 다음 행에 가로로 나열
+# 다음 행에 가로로 나열  
 col4, col5, col6 = st.columns(3)
 with col4:
     include_specials = st.checkbox("특수문자 포함")
@@ -155,11 +163,21 @@ with col5:
 with col6:
     use_base64 = st.checkbox("비밀번호를 Base64로 인코딩")
 
-# 비밀번호 생성 버튼
-if st.button("비밀번호 생성"):
+# 비밀번호 생성 버튼과 "생성된 비밀번호" 텍스트를 한 줄에 배치
+col1, col2, col3 = st.columns([1.5, 1.5, 5])  # 첫 번째 컬럼 (버튼), 두 번째 컬럼 ("생성된 비밀번호"), 세 번째 컬럼 (비밀번호 박스)
+with col1:
+    # 비밀번호 생성 버튼
+    generate_button = st.button("비밀번호 생성", help="버튼을 누르면 비밀번호를 생성합니다.")
+with col3:
+    # 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
+    password_display_area = st.empty()
+
+# 버튼 클릭 시 비밀번호 생성
+if generate_button:
     passwords = []
     estimated_times = []
     
+    # 비밀번호 생성
     for _ in range(num_passwords):
         pwd = generate_password(password_length, include_uppercase, include_lowercase, include_digits, include_specials, exclude_ambiguous)
         passwords.append(pwd)
@@ -187,12 +205,14 @@ if st.button("비밀번호 생성"):
         estimated_time = brute_force_time_estimate(password_length, char_set)
         estimated_times.append(estimated_time)
 
-    for pwd, est_time in zip(passwords, estimated_times):
-        st.info(f"생성된 비밀번호: {pwd}")
+    # 각 비밀번호를 박스에 표시
+    for i, (pwd, est_time) in enumerate(zip(passwords, estimated_times)):
+        password_box = st.empty()  # 각 비밀번호 박스를 빈 공간으로 설정
+        password_box.markdown(f'<div class="password-box">{pwd}</div>', unsafe_allow_html=True)
         st.info(f"비밀번호가 깨질 때까지 예상 시간: {est_time}")
 
 # 사용자 비밀번호 입력 및 검사
-st.markdown('<div class="header-box2">자신의 비밀번호 검사</div>', unsafe_allow_html=True)
+st.markdown('<div class="header-box2">비밀번호 유출 검사</div>', unsafe_allow_html=True)
 
 user_password = st.text_input("비밀번호를 입력하세요:", type="password")
 
@@ -229,4 +249,3 @@ if st.button("비밀번호 검사"):
             st.error("leaked_passwords.csv 파일을 찾을 수 없습니다.")
     else:
         st.error("비밀번호를 입력해주세요.")
-
