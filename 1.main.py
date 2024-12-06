@@ -3,6 +3,7 @@ import random
 import string
 import base64
 import pandas as pd
+import kagglehub
 from dotenv import load_dotenv
 import os
 
@@ -63,7 +64,6 @@ def brute_force_time_estimate(length, num_characters):
 # 비밀번호 유출 여부 확인 함수
 def check_password_leak(password, leaked_passwords):
     return password in leaked_passwords
-
 
 ######################################
 
@@ -138,6 +138,35 @@ with col2:
 
 # 헤더 디자인
 st.markdown('<div class="header-box1">안전한 비밀번호를 생성해드립니다.</div>', unsafe_allow_html=True)
+
+# Kaggle 데이터셋 다운로드 함수
+def download_kaggle_data():
+    try:
+        st.write("Downloading dataset...")
+        path = kagglehub.dataset_download("wjburns/common-password-list-rockyoutxt")
+        st.success("Dataset downloaded successfully!")
+        return path
+    except Exception as e:
+        st.error(f"Error downloading dataset: {e}")
+        return None
+
+# Kaggle 데이터 다운로드 및 파일 경로 가져오기
+dataset_path = download_kaggle_data()
+if dataset_path:
+    file_path = os.path.join(dataset_path, "rockyou.txt")
+else:
+    st.error("Kaggle 데이터를 다운로드하지 못했습니다. 앱을 재시작하거나 환경 변수를 확인하세요.")
+    st.stop()
+
+# RockYou 데이터 로드
+if os.path.exists(file_path):
+    st.write("Loading RockYou dataset...")
+    with open(file_path, "r", encoding="latin-1") as file:
+        leaked_passwords = set(line.strip() for line in file)
+    st.success(f"RockYou 데이터가 로드되었습니다. 총 {len(leaked_passwords)} 개의 비밀번호를 확인할 수 있습니다.")
+else:
+    st.error("RockYou 데이터셋 파일을 찾을 수 없습니다.")
+    st.stop()
 
 # 비밀번호 길이 선택
 password_length = st.slider("비밀번호 길이를 선택하세요", min_value=8, max_value=32, value=12)
@@ -233,16 +262,8 @@ if st.button("비밀번호 검사"):
         estimated_time_user = brute_force_time_estimate(len(user_password), char_set_user)
         st.info(f"이 비밀번호가 깨질 때까지 예상 시간: {estimated_time_user}")
 
-        # CSV 파일에서 유출된 비밀번호 로드
-        try:
-            leaked_df = pd.read_csv("leaked_passwords.csv")
-            leaked_passwords = leaked_df['password'].astype(str).tolist()
-            is_leaked = check_password_leak(user_password, leaked_passwords)
-            if is_leaked:
-                st.warning("경고: 이 비밀번호는 유출된 데이터베이스에 존재합니다!")
-            else:
-                st.success("이 비밀번호는 유출되지 않았습니다.")
-        except FileNotFoundError:
-            st.error("leaked_passwords.csv 파일을 찾을 수 없습니다.")
-    else:
-        st.error("비밀번호를 입력해주세요.")
+        is_leaked = check_password_leak(user_password, leaked_passwords)
+        if is_leaked:
+            st.warning("경고: 이 비밀번호는 RockYou 데이터셋에 포함되어 있습니다!")
+        else:
+            st.success("이 비밀번호는 안전합니다. RockYou 데이터셋에 포함되어 있지 않습니다.")
