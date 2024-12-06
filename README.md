@@ -31,8 +31,7 @@
 
 아래 이미지는 이 애플리케이션의 실행 예시입니다:
 
-<img width="299" alt="12421412" src="https://github.com/user-attachments/assets/d89056d1-77cc-4615-a809-dd0f70c14aac">
-
+![image](https://github.com/user-attachments/assets/c1d05bfc-6671-4cba-993a-1a7f651edaf3)
 
 ---
 
