@@ -82,7 +82,7 @@ st.markdown("""
         color: white;                /* 색상 */
         margin-left: -350px;        /* 타이틀과 이미지의 간격 조정 */
         margin-top: 80px;           /* 타이틀과 이미지의 간격 조정 */
-        text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(0, 0, 0, 0.5), 
+        text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(0, 0, 0, 0.5), /* 제목 그림자 */
             4px -4px 8px rgba(0, 0, 0, 0.5), -4px 4px 8px rgba(0, 0, 0, 0.5);
     }
     .header-box1 {                  /* 첫번째 header */
@@ -96,7 +96,7 @@ st.markdown("""
         font-size: 24px;
         font-weight: bold;
         color: #333;
-        margin-top : -50px;
+        margin-top : -70px;
     }
     .header-box2 {                  /* 두번째 header */
         text-align: center;
@@ -113,7 +113,7 @@ st.markdown("""
     .password-box {                 /* 비밀번호를 출력할 상자 */
         width: 400px;
         height: 40px;
-        background: #F2F2F2;
+        background: #F2F2F2;        /* 상자 색상(현재는 회색 -> 추후 빨, 파, 초로 변경해야함) */
         text-align: center;
         font-size: 18px;
         border-radius: 10px;
@@ -124,15 +124,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 이미지와 타이틀을 양옆으로 배치
-col1, col2 = st.columns(2)  # 가운데 컬럼을 넓게 설정
+col1, col2 = st.columns(2)
 
-# 왼쪽 컬럼: 이미지
+# 왼쪽 column : 이미지
 with col1:
     st.markdown('<div class="image-container">', unsafe_allow_html=True)
     st.image("image/colorsImage.jpeg", width=200)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# 가운데 컬럼: 타이틀
+# 오른쪽 column : 타이틀
 with col2:
     st.markdown('<div class="title">비밀번호 생성기 및 검사기</div>', unsafe_allow_html=True)
 
@@ -163,14 +163,11 @@ with col5:
 with col6:
     use_base64 = st.checkbox("비밀번호를 Base64로 인코딩")
 
-# 비밀번호 생성 버튼과 "생성된 비밀번호" 텍스트를 한 줄에 배치
-col1, col2, col3 = st.columns([1.5, 1.5, 5])  # 첫 번째 컬럼 (버튼), 두 번째 컬럼 ("생성된 비밀번호"), 세 번째 컬럼 (비밀번호 박스)
-with col1:
-    # 비밀번호 생성 버튼
-    generate_button = st.button("비밀번호 생성", help="버튼을 누르면 비밀번호를 생성합니다.")
-with col3:
-    # 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
-    password_display_area = st.empty()
+
+# 비밀번호 생성 버튼
+generate_button = st.button("비밀번호 생성", help="버튼을 누르면 비밀번호를 생성합니다.")
+# 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
+password_display_area = st.empty()
 
 # 버튼 클릭 시 비밀번호 생성
 if generate_button:
