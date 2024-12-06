@@ -12,7 +12,7 @@ api_key = os.getenv("API_KEY")
 username = os.getenv("API_USERNAME")
 
 # 비밀번호 생성 함수
-def generate_password(length, include_upper, include_lower, include_digits, include_specials, exclude_ambiguous):
+def generate_password(length, include_upper, include_lower, include_digits, include_specials, exclude_ambiguous, excluded_specials):
     # 사용자가 선택한 문자 집합을 기반으로 구성
     characters = ''
     if include_upper:
@@ -28,6 +28,10 @@ def generate_password(length, include_upper, include_lower, include_digits, incl
     if exclude_ambiguous:
         ambiguous_chars = 'O0I1|'
         characters = ''.join([c for c in characters if c not in ambiguous_chars])
+
+    # 특수문자 제외 처리
+    if excluded_specials:
+        characters = ''.join([c for c in characters if c not in excluded_specials])
 
     # 아무 문자 옵션도 선택하지 않은 경우 숫자로만 구성
     if not characters:
@@ -118,9 +122,8 @@ def evaluate_password_strength(password, leaked_passwords):
     return strength, time_to_crack, is_leaked
 
 
-######################################
+################## Streamlit 앱 시작####################
 
-# Streamlit 앱 시작
 # 스타일 정의
 st.markdown("""
     <style>
@@ -240,11 +243,14 @@ with col3:
 col4, col5, col6 = st.columns(3)
 with col4:
     include_specials = st.checkbox("특수문자 포함")
+    excluded_specials = ""  # 특수문자 제외 문자열 초기화
 with col5:
     exclude_ambiguous = st.checkbox("모호한 문자 제외 (O, 0, I, 1, |)")
 with col6:
     use_base64 = st.checkbox("비밀번호를 Base64로 인코딩")
 
+if include_specials:
+    excluded_specials = st.text_input("제외하고싶은 특수문자를 공백 없이 입력하세요. (없을 시 빈칸)")
 
 # 비밀번호 생성 버튼
 generate_button = st.button("비밀번호 생성", help="버튼을 누르면 비밀번호를 생성합니다.")
@@ -260,7 +266,7 @@ if generate_button:
 
     for _ in range(num_passwords):
         # 비밀번호 생성
-        pwd = generate_password(password_length, include_uppercase, include_lowercase, include_digits, include_specials, exclude_ambiguous)
+        pwd = generate_password(password_length, include_uppercase, include_lowercase, include_digits, include_specials, exclude_ambiguous, excluded_specials)
         passwords.append(pwd)
 
         # Base64 인코딩 옵션 처리
