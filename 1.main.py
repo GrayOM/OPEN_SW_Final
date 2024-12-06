@@ -249,7 +249,8 @@ with col5:
 with col6:
     use_base64 = st.checkbox("비밀번호를 Base64로 인코딩")
 
-if include_specials:
+# 특수문자 체크박스 체크 시, 특수문자 제외 텍스트 상자 활성화
+if include_specials:       
     excluded_specials = st.text_input("제외하고싶은 특수문자를 공백 없이 입력하세요. (없을 시 빈칸)")
 
 # 비밀번호 생성 버튼
