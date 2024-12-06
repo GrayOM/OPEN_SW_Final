@@ -65,6 +65,59 @@ def brute_force_time_estimate(length, num_characters):
 def check_password_leak(password, leaked_passwords):
     return password in leaked_passwords
 
+# 비밀번호 위험성 평가 함수
+def evaluate_password_strength(password, leaked_passwords):
+    # 문자 집합 크기 계산
+    char_set = 0
+    if any(c.isupper() for c in password):
+        char_set += 26
+    if any(c.islower() for c in password):
+        char_set += 26
+    if any(c.isdigit() for c in password):
+        char_set += 10
+    if any(c in string.punctuation for c in password):
+        char_set += len(string.punctuation)
+
+    # 모호한 문자 포함 여부 확인
+    if any(c in 'O0I1|' for c in password):
+        char_set -= len([c for c in password if c in 'O0I1|'])
+
+    # 브루트 포스 예상 시간 계산
+    time_to_crack = brute_force_time_estimate(len(password), char_set)  # 예상 시간 계산
+
+    # "년"이 포함되지 않으면 위험으로 판단
+    if '년' not in time_to_crack:
+        strength = "위험"  # "년"이 포함되지 않으면 위험
+        time_to_crack = "5년 미만"  # 계산 시간이 5년 미만인 경우
+    else:
+        # 계산 시간이 5년 이상인지 5년 미만인지 판단
+        time_in_years = 0
+        # 예상 시간에서 "년"을 추출하고, 년을 제외한 값이 5년 이상이면 안전으로 판단
+        if '년' in time_to_crack:
+            years_str = time_to_crack.split('년')[0].strip()
+            time_in_years = float(years_str) if years_str else 0
+
+        if time_in_years >= 5:
+            strength = "안전"
+            time_to_crack = f"{int(time_in_years)}년 이상"
+        elif time_in_years < 5 and time_in_years > 0:
+            strength = "중간"
+            time_to_crack = f"{int(time_in_years)}년 미만"
+        else:
+            strength = "위험"
+            time_to_crack = "5년 미만"
+
+    # RockYou 데이터셋에서 비밀번호가 유출된 경우
+    is_leaked = password in leaked_passwords
+
+    # 유출된 비밀번호일 경우 위험
+    if is_leaked:
+        strength = "위험"
+        time_to_crack = "유출됨"
+
+    return strength, time_to_crack, is_leaked
+
+
 ######################################
 
 # Streamlit 앱 시작
@@ -117,7 +170,7 @@ st.markdown("""
         text-align: center;
         font-size: 18px;
         border-radius: 10px;
-        margin-top: 5px;
+        margin-top: -5px;
         padding: 5px;
     }
     </style>
@@ -198,44 +251,77 @@ generate_button = st.button("비밀번호 생성", help="버튼을 누르면 비
 # 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
 password_display_area = st.empty()
 
+
 # 버튼 클릭 시 비밀번호 생성
 if generate_button:
-    passwords = []
-    estimated_times = []
-    
-    # 비밀번호 생성
+    passwords = []  # 생성된 비밀번호를 저장할 리스트
+    estimated_times = []  # 브루트 포스 예상 시간을 저장할 리스트
+    evaluations = []  # 각 비밀번호 위험성 평가 결과를 저장할 리스트
+
     for _ in range(num_passwords):
+        # 비밀번호 생성
         pwd = generate_password(password_length, include_uppercase, include_lowercase, include_digits, include_specials, exclude_ambiguous)
         passwords.append(pwd)
 
+        # Base64 인코딩 옵션 처리
         if use_base64:
-            pwd_encoded = base64.b64encode(pwd.encode()).decode()
+            pwd_encoded = base64.b64encode(pwd.encode()).decode()  # Base64로 인코딩
             st.success(f"{pwd} -> (Base64 인코딩) -> {pwd_encoded}")
-            pwd = pwd_encoded
+            pwd = pwd_encoded  # 인코딩된 비밀번호로 업데이트
 
         # 문자 집합 크기 계산
         char_set = 0
         if include_uppercase:
-            char_set += 26
+            char_set += 26  # 대문자 포함 시 문자 집합에 26 추가
         if include_lowercase:
-            char_set += 26
+            char_set += 26  # 소문자 포함 시 문자 집합에 26 추가
         if include_digits:
-            char_set += 10
+            char_set += 10  # 숫자 포함 시 문자 집합에 10 추가
         if include_specials:
-            char_set += len(string.punctuation)
+            char_set += len(string.punctuation)  # 특수 문자 포함 시 특수문자 개수 추가
         if exclude_ambiguous:
-            ambiguous_chars = 'O0I1|'
-            char_set -= len(ambiguous_chars)
+            ambiguous_chars = 'O0I1|'  # 모호한 문자 정의
+            char_set -= len(ambiguous_chars)  # 모호한 문자 제거 시 문자 집합 크기에서 제외
 
         # 브루트 포스 안전성 검사
         estimated_time = brute_force_time_estimate(password_length, char_set)
         estimated_times.append(estimated_time)
 
+        # 비밀번호 위험성 평가 수행
+        strength, time_to_crack, is_leaked = evaluate_password_strength(pwd, leaked_passwords)
+        evaluations.append((strength, time_to_crack, is_leaked))  # 평가 결과를 리스트에 추가
+
     # 각 비밀번호를 박스에 표시
-    for i, (pwd, est_time) in enumerate(zip(passwords, estimated_times)):
+    for i, (pwd, eval_result, est_time) in enumerate(zip(passwords, evaluations, estimated_times)):
+        strength, time_to_crack, is_leaked = eval_result
+
+        # 박스 색상 설정 (위험성에 따라)
+        if strength == "위험":
+            box_color = "#F6CED8"  # 빨간색 (위험)
+            eval_color = "#F6CED8"  # 글자색 빨간색
+            text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
+        elif strength == "중간":
+            box_color = "#F5F6CE"  # 노란색 (중간)
+            eval_color = "#F5F6CE"  # 글자색 노란색
+            text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
+        else:
+            box_color = "#CEF6CE"  # 초록색 (안전)
+            eval_color = "#CEF6CE"  # 글자색 초록색
+            text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
+
+        # 비밀번호 출력 박스와 위험성 평가 결과를 오른쪽에 표시
         password_box = st.empty()  # 각 비밀번호 박스를 빈 공간으로 설정
-        password_box.markdown(f'<div class="password-box">{pwd}</div>', unsafe_allow_html=True)
+        password_box.markdown(
+            f'<div style="display: flex; align-items: center;">'
+            f'<div class="password-box" style="background-color: {box_color}; padding: 10px; margin-right: 10px;">{pwd}</div>'
+            f'<div style="font-weight: bold; font-size: 16px; color: {eval_color}; text-shadow: {text_shadow}; padding: 5px;">{strength}</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+    
+        # 예상 크래킹 시간 출력
         st.info(f"비밀번호가 깨질 때까지 예상 시간: {est_time}")
+
 
 # 사용자 비밀번호 입력 및 검사
 st.markdown('<div class="header-box2">비밀번호 유출 검사</div>', unsafe_allow_html=True)
