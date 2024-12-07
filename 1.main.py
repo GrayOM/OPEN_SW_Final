@@ -253,6 +253,48 @@ with col6:
 if include_specials:       
     excluded_specials = st.text_input("제외하고싶은 특수문자를 공백 없이 입력하세요. (없을 시 빈칸)")
 
+# 비밀번호 추천 기능 사용 여부 선택
+use_recommendation = st.checkbox("비밀번호 추천 기능 사용")
+
+# 추천 옵션 제공
+if use_recommendation:
+    # 추천 옵션 제공
+    # 금융 서비스 추천 16글자, 대문자/소문자/숫자/특수 문자 모두 포함
+    # 이메일 : 12자 이상, 대문자/소문자/숫자 포함, 모호한 문자 제외
+    # 일반 계정 : 10자 이상, 대문자/소문자 포함
+    purpose = st.selectbox("비밀번호 추천 설정:", ["일반 계정", "이메일", "금융 서비스", "기타"])
+
+    # 추천 설정 자동 적용
+    if purpose == "금융 서비스":
+        password_length = 16
+        include_uppercase = True
+        include_lowercase = True
+        include_digits = True
+        include_specials = True
+        exclude_ambiguous = True
+    elif purpose == "이메일":
+        password_length = 12
+        include_uppercase = True
+        include_lowercase = True
+        include_digits = True
+        include_specials = False
+        exclude_ambiguous = True
+    elif purpose == "일반 계정":
+        password_length = 10
+        include_uppercase = True
+        include_lowercase = True
+        include_digits = True
+        include_specials = False
+        exclude_ambiguous = False
+    else:
+        password_length = 8
+        include_uppercase = False
+        include_lowercase = True
+        include_digits = True
+        include_specials = False
+        exclude_ambiguous = False
+
+
 # 비밀번호 생성 버튼
 generate_button = st.button("비밀번호 생성", help="버튼을 누르면 비밀번호를 생성합니다.")
 # 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
