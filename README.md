@@ -1,4 +1,4 @@
-# 🔐 # OPEN_SW_Final 2조 비밀번호 생성기
+# 🔐  OPEN_SW_Final 2조 비밀번호 생성기
 
 이 프로젝트는 Streamlit을 사용하여 **안전한 비밀번호 생성**과 **유출된 비밀번호 확인** 기능을 제공합니다. 이 애플리케이션은 사용자가 비밀번호의 강도를 선택하고, 비밀번호의 브루트 포스 공격 예상 시간을 확인하며, RockYou 데이터셋을 기반으로 유출 여부를 검사할 수 있도록 설계되었습니다.
 
@@ -45,10 +45,13 @@
 
 ## 🖼️ 실행 예시
 
-아래 이미지는 이 애플리케이션의 실행 예시입니다:
+비밀번호 생성기:
 
-![image](https://github.com/user-attachments/assets/c1d05bfc-6671-4cba-993a-1a7f651edaf3)
+![image](https://github.com/user-attachments/assets/20fcd1c0-5e24-401b-884c-8f781796f33a)
 
+비밀번호 검출기:
+
+![image](https://github.com/user-attachments/assets/d8695163-223f-4cd1-a96e-9477b4b12393)
 ---
 
 ## 🛠️ 설치 및 실행
