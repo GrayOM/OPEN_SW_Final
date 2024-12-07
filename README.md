@@ -47,7 +47,7 @@
 
 비밀번호 생성기:
 
-![image](https://github.com/user-attachments/assets/20fcd1c0-5e24-401b-884c-8f781796f33a)
+![image](https://github.com/user-attachments/assets/5dd7ef4e-fb3f-46b6-9181-f3ba67eb7dc0)
 
 비밀번호 검출기:
 
