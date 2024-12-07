@@ -190,7 +190,7 @@ with col1:
 
 # 오른쪽 column : 타이틀
 with col2:
-    st.markdown('<div class="title">비밀번호 생성기 및 검사기</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">Password Checker</div>', unsafe_allow_html=True)
 
 # 헤더 디자인
 st.markdown('<div class="header-box1">안전한 비밀번호를 생성해드립니다.</div>', unsafe_allow_html=True)
