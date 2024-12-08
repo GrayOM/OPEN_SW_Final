@@ -185,7 +185,7 @@ col1, col2 = st.columns(2)
 # 왼쪽 column : 이미지
 with col1:
     st.markdown('<div class="image-container">', unsafe_allow_html=True)
-    st.image("image/colorsImage.jpeg", width=200)
+    st.image("image/colorsImage.png", width=200)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # 오른쪽 column : 타이틀
