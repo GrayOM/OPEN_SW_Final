@@ -52,7 +52,7 @@
 
 비밀번호 생성기:
 
-![image](https://github.com/user-attachments/assets/b9482c6a-490d-489f-a77e-6209dcd1dfc2)
+![image](https://github.com/user-attachments/assets/5a9caf2c-9818-4223-8c83-4dd9c8f9ca94)
 
 비밀번호 검출기:
 
