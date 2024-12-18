@@ -146,7 +146,7 @@ def transform_password(password):
     replacement_rules = {
         'a': '4', 'b': '8', 'c': '(', 'e': '3', 'f': 'ph', 'g': '9', 'h': '#', 'i': '!',
         'l': '1', 'n': '^', 'o': '0', 'p': 'l*', 'q': '9', '2': 'TO',
-        's': '5', 't': '7', 'u': 'V', 'v': 'U', 'w': 'vv', 'y': 'j', 'z': '2'
+        's': '5', 't': '7', 'u': 'V', 'v': 'V', 'w': 'vv', 'z': '2'
     }
     
     transformed_password = ""
@@ -160,6 +160,20 @@ def transform_password(password):
 
 
 def password_mode_transform(form):
+    # 나만의 비밀번호 만들기
+    global my_own_word
+    my_own_word = st.text_input("비밀번호로 만들고 싶은 단어를 띄어쓰기 없이 입력해 주세요. (예 : iloveyou)", disabled=not form)
+    # 비밀번호 생성 버튼
+    global my_word_generate_button
+    my_word_generate_button = st.button("비밀번호 변환", help="버튼을 누르면 비밀번호를 변환합니다.", disabled=not form)
+    # 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
+    global password_display_area1
+    password_display_area1 = st.empty()
+
+    if my_word_generate_button:
+        st.success(transform_password(my_own_word))
+
+
     # "나만의 비밀번호 만들기" 체크가 안 되어 있을 때는 일반 설정 사용
     global password_length
     password_length = st.slider("비밀번호 길이를 선택하세요", min_value=8, max_value=32, value=12, disabled=form)
@@ -193,7 +207,7 @@ def password_mode_transform(form):
         use_base64 = st.checkbox("비밀번호를 Base64로 인코딩", disabled=form)
 
     if include_specials:       
-        excluded_specials = st.text_input("제외하고싶은 특수문자를 공백 없이 입력하세요. (없을 시 빈칸)")
+        excluded_specials = st.text_input("제외하고싶은 특수문자를 공백 없이 입력하세요. (없을 시 빈칸)", disabled=form)
 
     col7, col8, col9 = st.columns(3)
     # 비밀번호 추천 기능 사용 여부 선택
@@ -247,6 +261,7 @@ def password_mode_transform(form):
     global password_display_area
     password_display_area = st.empty()
 
+    
     
 
 ################## Streamlit 앱 시작####################
@@ -349,88 +364,87 @@ else:
     st.stop()
 
 # 모드 선택을 위한 라디오 버튼
-password_mode = st.radio("두 모드중 하나를 선택하세요.", options=["나만의 비밀번호 만들기", "비밀번호 생성기"])
+password_mode = st.radio("두 모드중 하나를 선택하세요.", options=["비밀번호 생성기", "나만의 비밀번호 만들기 - leet언어로 변환하기"])
 
 # 비밀번호 모드 변경
-if password_mode == "나만의 비밀번호 만들기":
-    st.success("나만의 비밀번호 만들기 모드입니다. 비밀번호 무작위 생성 옵션이 비활성화 됩니다.")
-    t_f = True
-    password_mode_transform(t_f)
-else:
+if password_mode == "비밀번호 생성기":
     st.success("비밀번호 생성기 모드입니다. 옵션을 선택하여 안전한 비밀번호를 생성하세요.")
     t_f = False
     password_mode_transform(t_f)
+else:
+    st.success("나만의 비밀번호 만들기 모드입니다. 비밀번호 무작위 생성 옵션이 비활성화 됩니다.")
+    t_f = True
+    password_mode_transform(t_f)
 
-if not t_f:
-        # 버튼 클릭 시 비밀번호 생성
-        if generate_button:
-            passwords = []  # 생성된 비밀번호를 저장할 리스트
-            estimated_times = []  # 브루트 포스 예상 시간을 저장할 리스트
-            evaluations = []  # 각 비밀번호 위험성 평가 결과를 저장할 리스트
+# 버튼 클릭 시 비밀번호 생성
+if generate_button:
+    passwords = []  # 생성된 비밀번호를 저장할 리스트
+    estimated_times = []  # 브루트 포스 예상 시간을 저장할 리스트
+    evaluations = []  # 각 비밀번호 위험성 평가 결과를 저장할 리스트
 
-            for _ in range(num_passwords):
-                # 비밀번호 생성
-                pwd = generate_password(password_length, include_uppercase, include_lowercase, include_digits, include_specials, exclude_ambiguous, excluded_specials)
-                passwords.append(pwd)
+    for _ in range(num_passwords):
+        # 비밀번호 생성
+        pwd = generate_password(password_length, include_uppercase, include_lowercase, include_digits, include_specials, exclude_ambiguous, excluded_specials)
+        passwords.append(pwd)
 
-                # Base64 인코딩 옵션 처리
-                if use_base64:
-                    pwd_encoded = base64.b64encode(pwd.encode()).decode()  # Base64로 인코딩
-                    st.success(f"{pwd} -> (Base64 인코딩) -> {pwd_encoded}")
-                    pwd = pwd_encoded  # 인코딩된 비밀번호로 업데이트
+        # Base64 인코딩 옵션 처리
+        if use_base64:
+            pwd_encoded = base64.b64encode(pwd.encode()).decode()  # Base64로 인코딩
+            st.success(f"{pwd} -> (Base64 인코딩) -> {pwd_encoded}")
+            pwd = pwd_encoded  # 인코딩된 비밀번호로 업데이트
 
-                # 문자 집합 크기 계산
-                char_set = 0
-                if include_uppercase:
-                    char_set += 26  # 대문자 포함 시 문자 집합에 26 추가
-                if include_lowercase:
-                    char_set += 26  # 소문자 포함 시 문자 집합에 26 추가
-                if include_digits:
-                    char_set += 10  # 숫자 포함 시 문자 집합에 10 추가
-                if include_specials:
-                    char_set += len(string.punctuation)  # 특수 문자 포함 시 특수문자 개수 추가
-                if exclude_ambiguous:
-                    ambiguous_chars = 'O0I1|'  # 모호한 문자 정의
-                    char_set -= len(ambiguous_chars)  # 모호한 문자 제거 시 문자 집합 크기에서 제외
+        # 문자 집합 크기 계산
+        char_set = 0
+        if include_uppercase:
+            char_set += 26  # 대문자 포함 시 문자 집합에 26 추가
+        if include_lowercase:
+            char_set += 26  # 소문자 포함 시 문자 집합에 26 추가
+        if include_digits:
+            char_set += 10  # 숫자 포함 시 문자 집합에 10 추가
+        if include_specials:
+            char_set += len(string.punctuation)  # 특수 문자 포함 시 특수문자 개수 추가
+        if exclude_ambiguous:
+            ambiguous_chars = 'O0I1|'  # 모호한 문자 정의
+            char_set -= len(ambiguous_chars)  # 모호한 문자 제거 시 문자 집합 크기에서 제외
 
-                # 브루트 포스 안전성 검사
-                estimated_time = brute_force_time_estimate(password_length, char_set)
-                estimated_times.append(estimated_time)
+        # 브루트 포스 안전성 검사
+        estimated_time = brute_force_time_estimate(password_length, char_set)
+        estimated_times.append(estimated_time)
 
-                # 비밀번호 위험성 평가 수행
-                strength, time_to_crack, is_leaked = evaluate_password_strength(pwd, leaked_passwords)
-                evaluations.append((strength, time_to_crack, is_leaked))  # 평가 결과를 리스트에 추가
+        # 비밀번호 위험성 평가 수행
+        strength, time_to_crack, is_leaked = evaluate_password_strength(pwd, leaked_passwords)
+        evaluations.append((strength, time_to_crack, is_leaked))  # 평가 결과를 리스트에 추가
 
-            # 각 비밀번호를 박스에 표시
-            for i, (pwd, eval_result, est_time) in enumerate(zip(passwords, evaluations, estimated_times)):
-                strength, time_to_crack, is_leaked = eval_result
+    # 각 비밀번호를 박스에 표시
+    for i, (pwd, eval_result, est_time) in enumerate(zip(passwords, evaluations, estimated_times)):
+        strength, time_to_crack, is_leaked = eval_result
 
-                # 박스 색상 설정 (위험성에 따라)
-                if strength == "위험":
-                    box_color = "#F6CED8"  # 빨간색 (위험)
-                    eval_color = "#F6CED8"  # 글자색 빨간색
-                    text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
-                elif strength == "중간":
-                    box_color = "#F5F6CE"  # 노란색 (중간)
-                    eval_color = "#F5F6CE"  # 글자색 노란색
-                    text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
-                else:
-                    box_color = "#CEF6CE"  # 초록색 (안전)
-                    eval_color = "#CEF6CE"  # 글자색 초록색
-                    text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
+        # 박스 색상 설정 (위험성에 따라)
+        if strength == "위험":
+            box_color = "#F6CED8"  # 빨간색 (위험)
+            eval_color = "#F6CED8"  # 글자색 빨간색
+            text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
+        elif strength == "중간":
+            box_color = "#F5F6CE"  # 노란색 (중간)
+            eval_color = "#F5F6CE"  # 글자색 노란색
+            text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
+        else:
+            box_color = "#CEF6CE"  # 초록색 (안전)
+            eval_color = "#CEF6CE"  # 글자색 초록색
+            text_shadow = "1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black"  # 글자 테두리 (검정색)
 
-                # 비밀번호 출력 박스와 위험성 평가 결과를 오른쪽에 표시
-                password_box = st.empty()  # 각 비밀번호 박스를 빈 공간으로 설정
-                password_box.markdown(
-                    f'<div style="display: flex; align-items: center;">'
-                    f'<div class="password-box" style="background-color: {box_color}; padding: 10px; margin-right: 10px;">{pwd}</div>'
-                    f'<div style="font-weight: bold; font-size: 16px; color: {eval_color}; text-shadow: {text_shadow}; padding: 5px;">{strength}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True
-                )
-    
-                # 예상 크래킹 시간 출력
-                st.info(f"비밀번호가 깨질 때까지 예상 시간: {est_time}")
+        # 비밀번호 출력 박스와 위험성 평가 결과를 오른쪽에 표시
+        password_box = st.empty()  # 각 비밀번호 박스를 빈 공간으로 설정
+        password_box.markdown(
+            f'<div style="display: flex; align-items: center;">'
+            f'<div class="password-box" style="background-color: {box_color}; padding: 10px; margin-right: 10px;">{pwd}</div>'
+            f'<div style="font-weight: bold; font-size: 16px; color: {eval_color}; text-shadow: {text_shadow}; padding: 5px;">{strength}</div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        # 예상 크래킹 시간 출력
+        st.info(f"비밀번호가 깨질 때까지 예상 시간: {est_time}")
 
 
 
