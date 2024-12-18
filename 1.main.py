@@ -121,6 +121,24 @@ def evaluate_password_strength(password, leaked_passwords):
 
     return strength, time_to_crack, is_leaked
 
+# Kaggle 데이터셋 다운로드 함수
+def download_kaggle_data():
+    try:
+        st.write("Downloading dataset...")
+        path = kagglehub.dataset_download("wjburns/common-password-list-rockyoutxt")
+        st.success("Dataset downloaded successfully!")
+        return path
+    except Exception as e:
+        st.error(f"Error downloading dataset: {e}")
+        return None
+    
+# RockYou 데이터 로드 함수 (최적화)
+def load_rockyou_dataset(path):
+    if "rockyou_passwords" not in st.session_state:
+        st.session_state.rockyou_passwords = set()
+        with open(path, "r", encoding="latin-1") as file:
+            st.session_state.rockyou_passwords = set(line.strip() for line in file)
+    return st.session_state.rockyou_passwords
 
 ################## Streamlit 앱 시작####################
 
@@ -195,33 +213,20 @@ with col2:
 # 헤더 디자인
 st.markdown('<div class="header-box1">안전한 비밀번호를 생성해드립니다.</div>', unsafe_allow_html=True)
 
-# Kaggle 데이터셋 다운로드 함수
-def download_kaggle_data():
-    try:
-        st.write("Downloading dataset...")
-        path = kagglehub.dataset_download("wjburns/common-password-list-rockyoutxt")
-        st.success("Dataset downloaded successfully!")
-        return path
-    except Exception as e:
-        st.error(f"Error downloading dataset: {e}")
-        return None
-
-# Kaggle 데이터 다운로드 및 파일 경로 가져오기
+# Kaggle 데이터셋 다운로드 및 데이터 로드
 dataset_path = download_kaggle_data()
 if dataset_path:
     file_path = os.path.join(dataset_path, "rockyou.txt")
+    # RockYou 데이터 로드
+    if os.path.exists(file_path):
+        st.write("Loading RockYou dataset...")
+        leaked_passwords = load_rockyou_dataset(file_path)
+        st.success(f"RockYou 데이터 로드 완료: 총 {len(leaked_passwords)}개의 비밀번호가 포함되어 있습니다.")
+    else:
+        st.error("RockYou 데이터셋 파일을 찾을 수 없습니다.")
+        st.stop()
 else:
     st.error("Kaggle 데이터를 다운로드하지 못했습니다. 앱을 재시작하거나 환경 변수를 확인하세요.")
-    st.stop()
-
-# RockYou 데이터 로드
-if os.path.exists(file_path):
-    st.write("Loading RockYou dataset...")
-    with open(file_path, "r", encoding="latin-1") as file:
-        leaked_passwords = set(line.strip() for line in file)
-    st.success(f"RockYou 데이터가 로드되었습니다. 총 {len(leaked_passwords)} 개의 비밀번호를 확인할 수 있습니다.")
-else:
-    st.error("RockYou 데이터셋 파일을 찾을 수 없습니다.")
     st.stop()
 
 # 비밀번호 길이 선택
