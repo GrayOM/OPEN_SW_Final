@@ -140,6 +140,130 @@ def load_rockyou_dataset(path):
             st.session_state.rockyou_passwords = set(line.strip() for line in file)
     return st.session_state.rockyou_passwords
 
+# 기억하기 쉬운 안전한 비밀번호 만들기 함수
+def transform_password(password):
+    # 문자 치환 규칙
+    replacement_rules = {
+        'a': '4', 'b': '8', 'c': '(', 'e': '3', 'f': 'ph', 'g': '9', 'h': '#', 'i': '!',
+        'l': '1', 'n': '^', 'o': '0', 'p': 'l*', 'q': '9', '2': 'TO',
+        's': '5', 't': '7', 'u': 'V', 'v': 'V', 'w': 'vv', 'z': '2'
+    }
+    
+    transformed_password = ""
+    
+    # 비밀번호에서 각 문자를 확인하여 규칙에 맞게 변환
+    for char in password:
+        # 규칙에 맞는 변환이 있으면 변경, 없으면 원래 문자 그대로
+        transformed_password += replacement_rules.get(char.lower(), char)
+    
+    return transformed_password
+
+
+def password_mode_transform(form):
+    # 나만의 비밀번호 만들기
+    global my_own_word
+    my_own_word = st.text_input("비밀번호로 만들고 싶은 단어를 띄어쓰기 없이 입력해 주세요. (예 : iloveyou)", disabled=not form)
+    # 비밀번호 생성 버튼
+    global my_word_generate_button
+    my_word_generate_button = st.button("비밀번호 변환", help="버튼을 누르면 비밀번호를 변환합니다.", disabled=not form)
+    # 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
+    global password_display_area1
+    password_display_area1 = st.empty()
+
+    if my_word_generate_button:
+        st.success(transform_password(my_own_word))
+
+
+    # "나만의 비밀번호 만들기" 체크가 안 되어 있을 때는 일반 설정 사용
+    global password_length
+    password_length = st.slider("비밀번호 길이를 선택하세요", min_value=8, max_value=32, value=12, disabled=form)
+    global num_passwords
+    num_passwords = st.slider("생성할 비밀번호 개수를 선택하세요", min_value=1, max_value=5, value=1, disabled=form)
+
+    # 문자 옵션 선택을 가로로 나열
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        global include_uppercase
+        include_uppercase = st.checkbox("대문자 포함", disabled=form)
+    with col2:
+        global include_lowercase
+        include_lowercase = st.checkbox("소문자 포함", disabled=form)
+    with col3:
+        global include_digits
+        include_digits = st.checkbox("숫자 포함", disabled=form)
+
+    # 특수문자 체크박스 체크 시, 특수문자 제외 텍스트 상자 활성화
+    col4, col5, col6 = st.columns(3)
+    with col4:
+        global include_specials
+        include_specials = st.checkbox("특수문자 포함", disabled=form)
+        global excluded_specials
+        excluded_specials = ""  # 특수문자 제외 문자열 초기화
+    with col5:
+        global exclude_ambiguous
+        exclude_ambiguous = st.checkbox("모호한 문자 제외 (O, 0, I, 1, |)", disabled=form)
+    with col6:
+        global use_base64
+        use_base64 = st.checkbox("비밀번호를 Base64로 인코딩", disabled=form)
+
+    if include_specials:       
+        excluded_specials = st.text_input("제외하고싶은 특수문자를 공백 없이 입력하세요. (없을 시 빈칸)", disabled=form)
+
+    col7, col8, col9 = st.columns(3)
+    # 비밀번호 추천 기능 사용 여부 선택
+    with col7:
+        global use_recommendation
+        use_recommendation = st.checkbox("비밀번호 추천 기능 사용", disabled=form)
+
+    # 추천 옵션 제공
+    if use_recommendation:
+        # 추천 옵션 제공
+        # 금융 서비스 추천 16글자, 대문자/소문자/숫자/특수 문자 모두 포함
+        # 이메일 : 12자 이상, 대문자/소문자/숫자 포함, 모호한 문자 제외
+        # 일반 계정 : 10자 이상, 대문자/소문자 포함
+        # 기타 : 기본 8자, 소문자/숫자 포함
+        purpose = st.selectbox("비밀번호 추천 설정:", ["일반 계정", "이메일", "금융 서비스", "기타"])
+
+        # 추천 설정 자동 적용
+        if purpose == "금융 서비스":
+            password_length = 16
+            include_uppercase = True
+            include_lowercase = True
+            include_digits = True
+            include_specials = True
+            exclude_ambiguous = True
+        elif purpose == "이메일":
+            password_length = 12
+            include_uppercase = True
+            include_lowercase = True
+            include_digits = True
+            include_specials = False
+            exclude_ambiguous = True
+        elif purpose == "일반 계정":
+            password_length = 10
+            include_uppercase = True
+            include_lowercase = True
+            include_digits = True
+            include_specials = False
+            exclude_ambiguous = False
+        else:
+            password_length = 8
+            include_uppercase = False
+            include_lowercase = True
+            include_digits = True
+            include_specials = False
+            exclude_ambiguous = False
+
+    # 비밀번호 생성 버튼
+    global generate_button
+    generate_button = st.button("비밀번호 생성", help="버튼을 누르면 비밀번호를 생성합니다.", disabled=form)
+    # 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
+    global password_display_area
+    password_display_area = st.empty()
+
+    
+    
+
 ################## Streamlit 앱 시작####################
 
 # 스타일 정의
@@ -197,6 +321,16 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
+
+
+
+
+
+
+
+
+
 # 이미지와 타이틀을 양옆으로 배치
 col1, col2 = st.columns(2)
 
@@ -229,82 +363,18 @@ else:
     st.error("Kaggle 데이터를 다운로드하지 못했습니다. 앱을 재시작하거나 환경 변수를 확인하세요.")
     st.stop()
 
-# 비밀번호 길이 선택
-password_length = st.slider("비밀번호 길이를 선택하세요", min_value=8, max_value=32, value=12)
+# 모드 선택을 위한 라디오 버튼
+password_mode = st.radio("두 모드중 하나를 선택하세요.", options=["비밀번호 생성기", "나만의 비밀번호 만들기 - leet언어로 변환하기"])
 
-# 비밀번호 개수 선택
-num_passwords = st.slider("생성할 비밀번호 개수를 선택하세요", min_value=1, max_value=5, value=1)
-
-# 문자 옵션 선택을 가로로 나열 (2행으로 변경)
-col1, col2, col3 = st.columns(3)
-with col1:
-    include_uppercase = st.checkbox("대문자 포함")
-with col2:
-    include_lowercase = st.checkbox("소문자 포함")
-with col3:
-    include_digits = st.checkbox("숫자 포함")
-
-# 다음 행에 가로로 나열  
-col4, col5, col6 = st.columns(3)
-with col4:
-    include_specials = st.checkbox("특수문자 포함")
-    excluded_specials = ""  # 특수문자 제외 문자열 초기화
-with col5:
-    exclude_ambiguous = st.checkbox("모호한 문자 제외 (O, 0, I, 1, |)")
-with col6:
-    use_base64 = st.checkbox("비밀번호를 Base64로 인코딩")
-
-# 특수문자 체크박스 체크 시, 특수문자 제외 텍스트 상자 활성화
-if include_specials:       
-    excluded_specials = st.text_input("제외하고싶은 특수문자를 공백 없이 입력하세요. (없을 시 빈칸)")
-
-# 비밀번호 추천 기능 사용 여부 선택
-use_recommendation = st.checkbox("비밀번호 추천 기능 사용")
-
-# 추천 옵션 제공
-if use_recommendation:
-    # 추천 옵션 제공
-    # 금융 서비스 추천 16글자, 대문자/소문자/숫자/특수 문자 모두 포함
-    # 이메일 : 12자 이상, 대문자/소문자/숫자 포함, 모호한 문자 제외
-    # 일반 계정 : 10자 이상, 대문자/소문자 포함
-    purpose = st.selectbox("비밀번호 추천 설정:", ["일반 계정", "이메일", "금융 서비스", "기타"])
-
-    # 추천 설정 자동 적용
-    if purpose == "금융 서비스":
-        password_length = 16
-        include_uppercase = True
-        include_lowercase = True
-        include_digits = True
-        include_specials = True
-        exclude_ambiguous = True
-    elif purpose == "이메일":
-        password_length = 12
-        include_uppercase = True
-        include_lowercase = True
-        include_digits = True
-        include_specials = False
-        exclude_ambiguous = True
-    elif purpose == "일반 계정":
-        password_length = 10
-        include_uppercase = True
-        include_lowercase = True
-        include_digits = True
-        include_specials = False
-        exclude_ambiguous = False
-    else:
-        password_length = 8
-        include_uppercase = False
-        include_lowercase = True
-        include_digits = True
-        include_specials = False
-        exclude_ambiguous = False
-
-
-# 비밀번호 생성 버튼
-generate_button = st.button("비밀번호 생성", help="버튼을 누르면 비밀번호를 생성합니다.")
-# 비밀번호를 미리 표시할 자리 설정 (빈 공간을 미리 준비)
-password_display_area = st.empty()
-
+# 비밀번호 모드 변경
+if password_mode == "비밀번호 생성기":
+    st.success("비밀번호 생성기 모드입니다. 옵션을 선택하여 안전한 비밀번호를 생성하세요.")
+    t_f = False
+    password_mode_transform(t_f)
+else:
+    st.success("나만의 비밀번호 만들기 모드입니다. 비밀번호 무작위 생성 옵션이 비활성화 됩니다.")
+    t_f = True
+    password_mode_transform(t_f)
 
 # 버튼 클릭 시 비밀번호 생성
 if generate_button:
@@ -372,9 +442,22 @@ if generate_button:
             f'</div>',
             unsafe_allow_html=True
         )
-    
+
         # 예상 크래킹 시간 출력
         st.info(f"비밀번호가 깨질 때까지 예상 시간: {est_time}")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # 사용자 비밀번호 입력 및 검사
